@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "mohan-m21/maven-web-app"  // change to nee Docker Hub repo
+        IMAGE_NAME = "imohan21/maven-web-app"  // change to nee Docker Hub repo
         IMAGE_TAG  = "${BUILD_NUMBER}"
         DOCKER_CRED = 'mohan-dock-hub'     // nee credential ID
     }
