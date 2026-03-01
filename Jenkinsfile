@@ -1,51 +1,42 @@
 pipeline {
     agent any
-
     tools {
-        maven 'Maven-3.9.9'  // nee Global Tool lo configured name (Maven-3.9.9 or Maven3 etc.)
+        maven 'Maven-3.9.9'
     }
-
     environment {
-        IMAGE_NAME = "imohan21/maven-web-app"  // change to nee Docker Hub repo
+        IMAGE_NAME = "imohan21/maven-web-app"
         IMAGE_TAG  = "${BUILD_NUMBER}"
-        DOCKER_CRED = 'mohan-dock-hub'     // nee credential ID
+        DOCKER_CRED = 'mohan-dock-hub'
     }
-
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/mohan-m21/maven-web-app.git'
             }
         }
-
         stage('Maven Build') {
             steps {
                 sh 'mvn clean package'
             }
         }
-
         stage('Docker Build') {
             steps {
-                // Optional: Rename to ROOT.war for direct / context
                 sh 'cp target/maven-web-app.war target/ROOT.war || true'
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
-
-         stage('Docker Push') {
+        stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: DOCKER_CRED, usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
-                sh 'echo $DH_PASS | docker login -u $DH_USER --password-stdin'
-                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                sh "docker push ${IMAGE_NAME}:latest"   // optional, for easy deploy
+                    sh 'echo $DH_PASS | docker login -u $DH_USER --password-stdin'
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${IMAGE_NAME}:latest"
                 }
             }
         }
-
         stage('Deploy Container') {
             steps {
-                // Restart container with new image (same server lo)
                 sh '''
                     docker stop javaWeb || true
                     docker rm javaWeb || true
@@ -55,10 +46,11 @@ pipeline {
             }
         }
     }
-
     post {
         always {
-            echo "Pipeline finished - check http://your-ip:8080/maven-web-app/ or /"
+            echo "Pipeline finished - check http://15.207.16.110:8282/maven-web-app/"
+            echo "If ROOT.war used: http://15.207.16.110:8282/"
         }
     }
+}
 }
