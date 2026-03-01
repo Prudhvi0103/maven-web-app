@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'  // nee Global Tool lo configured name (Maven-3.9.9 or Maven3 etc.)
+        maven 'Maven-3.9.9'  // nee Global Tool lo configured name (Maven-3.9.9 or Maven3 etc.)
     }
 
     environment {
