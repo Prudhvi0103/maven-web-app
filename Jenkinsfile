@@ -28,8 +28,8 @@ pipeline {
             steps {
                 // Optional: Rename to ROOT.war for direct / context
                 sh 'cp target/maven-web-app.war target/ROOT.war || true'
-                sh "docker build -t $$   {IMAGE_NAME}:   $${IMAGE_TAG} ."
-                sh "docker tag $$   {IMAGE_NAME}:   $${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
 
