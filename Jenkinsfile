@@ -15,9 +15,9 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                 git branch: 'master',
-                    credentialsId: 'PrudhviGITHUB',
-                    url: 'https://github.com/Prudhvi0103/maven-web-app.git'
+                git branch: 'master',
+                credentialsId: 'PrudhviGITHUB',
+                url: 'https://github.com/Prudhvi0103/maven-web-app.git'
             }
         }
 
@@ -63,13 +63,10 @@ pipeline {
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    docker stop javaWeb || true
-                    docker rm javaWeb || true
-                    docker pull ${IMAGE_NAME}:latest
-                    docker run -d -p 8282:8080 --name javaWeb ${IMAGE_NAME}:latest
+                    kubectl apply -f k8s-deployment.yml
                 '''
             }
         }
@@ -78,7 +75,6 @@ pipeline {
     post {
         always {
             echo "Pipeline finished"
-            echo "App URL: http://15.207.16.110:8282/"
         }
     }
 }
