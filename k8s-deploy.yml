@@ -5,8 +5,6 @@ metadata:
   name: mavenwebappdeployment
 spec:
   replicas: 2
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: mavenwebapp
@@ -17,8 +15,7 @@ spec:
     spec:
       containers:
       - name: mavenwebappcontainer
-        image: vinodses/mavenwebapp
-        imagePullPolicy: Always
+        image: prudhvi0103/maven-web-app:latest   # ✅ correct image
         ports:
         - containerPort: 8080
 
@@ -28,30 +25,10 @@ kind: Service
 metadata:
   name: mavenwebappsvc
 spec:
-  type: ClusterIP   # 🔥 change from LoadBalancer (important for ingress)
+  type: NodePort   # ✅ changed
   selector:
     app: mavenwebapp
   ports:
   - port: 80
     targetPort: 8080
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: mavenwebapp-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  ingressClassName: nginx   # 🔥 important
-  rules:
-  - host: mavenwebapp.local
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: mavenwebappsvc
-            port:
-              number: 80
+    nodePort: 30007   # ✅ fixed port (optional but good)
