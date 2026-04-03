@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     tools {
-        maven 'Maven-3.9.9'
+        maven 'Maven3'
     }
     
     environment {
@@ -12,18 +12,37 @@ pipeline {
     }
     
     stages {
+
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/Prudhvi0103/maven-web-app.git'
+                 git branch: 'master',
+                    credentialsId: 'PrudhviGITHUB',
+                    url: 'https://github.com/Prudhvi0103/maven-web-app.git'
             }
         }
-        
-        stage('Maven Build') {
+
+        stage('Maven Build + Deploy to Nexus') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean deploy'
             }
         }
-        
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=maven-web-app'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 sh 'cp target/maven-web-app.war target/ROOT.war || true'
@@ -31,17 +50,19 @@ pipeline {
                 sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
-        
+
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: DOCKER_CRED, usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
-                    sh 'echo $DH_PASS | docker login -u $DH_USER --password-stdin'
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${IMAGE_NAME}:latest"
+                    sh '''
+                        echo $DH_PASS | docker login -u $DH_USER --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${IMAGE_NAME}:latest
+                    '''
                 }
             }
         }
-        
+
         stage('Deploy Container') {
             steps {
                 sh '''
@@ -56,8 +77,8 @@ pipeline {
     
     post {
         always {
-            echo "Pipeline finished - check http://15.207.16.110:8282/maven-web-app/"
-            echo "If ROOT.war used: http://15.207.16.110:8282/"
+            echo "Pipeline finished"
+            echo "App URL: http://15.207.16.110:8282/"
         }
     }
 }
