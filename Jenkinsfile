@@ -21,11 +21,13 @@ pipeline {
             }
         }
 
-        stage('Maven Build + Deploy to Nexus') {
-            steps {
-                sh 'mvn clean deploy'
-            }
+       stage('Maven Build + Deploy to Nexus') {
+    steps {
+        configFileProvider([configFile(fileId: 'maven-settings', variable: 'MAVEN_SETTINGS')]) {
+            sh "mvn clean deploy --settings $MAVEN_SETTINGS"
         }
+    }
+}
 
         stage('SonarQube Analysis') {
             steps {
